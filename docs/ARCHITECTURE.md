@@ -26,7 +26,7 @@ flowchart TD
   Bundle --> Latest[Latest readings and freshness]
   Bundle --> Series[Selected station and time window]
   Latest --> Cards[Network maxima and station table]
-  Latest --> Map[SVG station map]
+  Latest --> Map[Persistent Leaflet station map]
   Series --> Trend[SVG hourly trend]
   Bundle --> Export[CSV with mode and provenance]
 ```

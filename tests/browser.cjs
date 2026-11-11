@@ -46,6 +46,7 @@ let failurePage;
   await page.selectOption('#region','madrid');
   await page.waitForFunction(() => document.getElementById('geo-map').dataset.stationCount === '8');
   await page.selectOption('#metric','temperature');
+  await page.waitForFunction(() => document.getElementById('geo-map').dataset.metric === 'temperature');
   fs.mkdirSync('validation-output',{recursive:true});
   await page.screenshot({path:'validation-output/desktop-test-fixture.png',fullPage:true});
   await page.setViewportSize({width:390,height:844});

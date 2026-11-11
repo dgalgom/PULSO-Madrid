@@ -116,6 +116,7 @@ The project-local `.Rprofile` enables UTF-8 character handling on Windows when n
 | [Research](RESEARCH.md) | Newspaper evidence, dataset review and selection rationale |
 | [Architecture](docs/ARCHITECTURE.md) | Components, data flow and extension points |
 | [Data dictionary](docs/DATA_DICTIONARY.md) | Fields, units, freshness, validation and provenance |
+| [Temperature comparison](docs/CLIMATOLOGY.md) | Hourly limit versus complete-day 20-year baseline |
 | [Operations](docs/OPERATIONS.md) | First run, troubleshooting and deployment considerations |
 | [Validation](VALIDATION.md) | Completed checks, unverified behavior and manual checklist |
 | [Contributing](CONTRIBUTING.md) | Development workflow and reporting problems |

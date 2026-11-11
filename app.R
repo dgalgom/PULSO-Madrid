@@ -41,8 +41,8 @@ ui <- bootstrapPage(
       conditionalPanel("input.page == 'monitor'",
         tags$section(class='hero',tags$div(tags$div(class='eyebrow','EL ENTORNO TAMBIÉN TIENE PULSO'),
           tags$h1('Entiende el presente.',tags$br(),tags$span('Prepárate para lo que viene.')),
-          tags$p('Temperatura, lluvia y aire. Una mirada compartida a las señales de tu ciudad.')),
-          tags$div(class='hero-orbit','40°25′ N',tags$small('MADRID'),tags$span('↗'))),
+          tags$p('Temperatura, lluvia y aire. Una mirada compartida a las señales de tu territorio.')),
+          uiOutput('region_orbit')),
         uiOutput('metrics'),
         tags$div(class='main-grid',
           tags$section(class='panel map-panel',panel_heading('01 / TERRITORIO','Cada estación cuenta',uiOutput('map_metric',inline=TRUE)),
@@ -69,7 +69,7 @@ ui <- bootstrapPage(
           tags$h1('Los titulares plantean',tags$br(),tags$span('las preguntas. Los datos ayudan.')),
           tags$p('Selección editorial revisada el 11 de noviembre de 2026. Los textos de las tarjetas son resúmenes propios; no un servicio de noticias en directo.'))),
         tags$div(class='news-grid',news_cards()),
-        tags$section(class='panel prose',tags$h2('La solución elegida'),tags$p('Un observatorio de Madrid para explorar señales ambientales por estación y hora, contrastar episodios con la información pública y exportar las lecturas utilizadas. La prensa orienta las preguntas; los sensores sostienen la visualización.'),
+        tags$section(class='panel prose',tags$h2('La solución elegida'),tags$p('Un observatorio regional para explorar señales ambientales por estación y hora, contrastar episodios con la información pública y exportar las lecturas utilizadas. La prensa orienta las preguntas; los sensores sostienen la visualización.'),
           tags$p('Cobertura seleccionable: Madrid (meteorología y aire), Galicia (meteorología), Catalunya (aire). No se simulan sensores ausentes. El nombre España describe la ampliación; no significa cobertura completa del país.'))),
       conditionalPanel("input.page == 'sources'",
         tags$section(class='hero',tags$div(tags$span(class='eyebrow','TRAZABILIDAD / DATOS.GOB.ES'),
@@ -107,6 +107,11 @@ server <- function(input,output,session) {
   cache <- reactiveValues(madrid=demo_data(),galicia=empty_bundle('galicia'),catalunya=empty_bundle('catalunya'))
   bundle <- reactive({ req(input$region); cache[[input$region]] })
   history <- reactiveVal(empty_history())
+  output$region_orbit <- renderUI({
+    req(input$region); r <- regions[regions$id==input$region,]
+    tags$div(class='hero-orbit',sprintf('%.2f° N',r$lat),
+      tags$small(toupper(switch(input$region,madrid='Madrid',galicia='Galicia',catalunya='Catalunya'))),tags$span('↗'))
+  })
   last_error <- reactiveVal(NULL)
   clock_now <- reactive({ invalidateLater(60000,session); if(bundle()$mode=='demo') max(bundle()$observations$time) else Sys.time() })
   current_metric <- reactive({ req(input$metric); metrics[metrics$key==input$metric,] })
@@ -176,7 +181,16 @@ server <- function(input,output,session) {
       if(b$mode!='demo') tags$details(tags$summary('Estado de la conexión'),tags$p(b$message))),
       if(!is.null(last_error())) tags$div(class='error-notice',role='alert',last_error()))
   })
-  output$metrics <- renderUI(tags$div(class='metrics-grid',lapply(c('temperature','rain','wind','pm25'),metric_card,bundle=bundle(),now=clock_now())))
+  output$metrics <- renderUI({
+    keys <- switch(input$region,catalunya=c('no2','pm25','ozone'),galicia=c('temperature','rain','wind'),c('temperature','rain','wind','pm25'))
+    tags$div(class=paste('metrics-grid',if(length(keys)==3) 'metrics-3' else ''),
+      lapply(keys,metric_card,bundle=bundle(),now=clock_now()))
+  })
+  observeEvent(list(input$region,bundle()$fetched,bundle()$mode),{
+    if(bundle()$mode=='demo') updateDateInput(session,'climate_date',value=as.Date('2026-07-20'))
+    else if(nrow(bundle()$observations)) updateDateInput(session,'climate_date',
+      value=as.Date(max(bundle()$observations$time),tz='Europe/Madrid')-1)
+  })
   output$map_metric <- renderUI(tags$span(class='dataset-pill',paste(current_metric()$label,'/',current_metric()$unit)))
   observe({
     d <- merge(current_latest(),bundle()$stations,by=c('station','network'))

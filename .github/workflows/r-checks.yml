@@ -24,6 +24,14 @@ jobs:
         with:
           r-version: release
           use-public-rspm: true
+      - name: Identify R version
+        id: r-version
+        run: echo "version=$(Rscript -e 'cat(as.character(getRversion()))')" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache/restore@v4
+        id: r-cache
+        with:
+          path: .library
+          key: ubuntu-24.04-R-${{ steps.r-version.outputs.version }}-${{ hashFiles('setup.R') }}
       - name: Install runtime dependencies
         shell: Rscript {0}
         run: source("setup.R")
@@ -59,3 +67,8 @@ jobs:
           name: validation-evidence
           path: validation-output/
           if-no-files-found: ignore
+      - uses: actions/cache/save@v4
+        if: always() && steps.r-cache.outputs.cache-hit != 'true'
+        with:
+          path: .library
+          key: ubuntu-24.04-R-${{ steps.r-version.outputs.version }}-${{ hashFiles('setup.R') }}
