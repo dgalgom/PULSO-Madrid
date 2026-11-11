@@ -10,11 +10,7 @@ probe <- function(name,fun) {
   },error=function(e) { cat(name,': FAILED:',conditionMessage(e),'\n'); results[[name]] <<- list(ok=FALSE,error=conditionMessage(e)) })
 }
 probe('galicia',function() fetch_region('galicia'))
-probe('catalunya',function() {
-  raw <- json_get(catalunya_url())
-  if(length(raw)) { cat('XVPCA fields:',paste(names(raw[[1]]),collapse=','),'\n'); cat('XVPCA units:',scalar(raw[[1]]$unitats),'\n') }
-  parse_catalunya(raw)
-})
+probe('catalunya',function() fetch_region('catalunya'))
 probe('madrid_districts',function() {
   url <- paste0(regional_sources$url[4],'?where=1%3D1&outFields=COD_DIS_TX,NOMBRE&outSR=4326&returnGeometry=true&geometryPrecision=5&maxAllowableOffset=0.0001&f=geojson')
   d <- json_get(url); stopifnot(d$type=='FeatureCollection',length(d$features)==21)

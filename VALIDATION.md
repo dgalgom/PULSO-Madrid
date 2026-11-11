@@ -4,6 +4,10 @@ Environment: Windows, R 4.6.1, 11 November 2026.
 
 ## Regional update
 
+Verified expanded run: [42998136013](https://github.com/dgalgom/PULSO-Madrid/actions/runs/42998136013) passed deterministic tests, Shiny reactive checks, Chromium checks and all three provider probes. The browser fixture measured a 165 ms filter-to-map update on that runner; this is one synthetic local interaction, not an internet latency guarantee.
+
+Live probe snapshot on 11 November 2026: MeteoGalicia returned 14,340 valid hourly readings with 155 station records, latest timestamp `2026-11-11T10:00:00+0100`. The XVPCA probe returned 7,680 hourly readings with 74 station records, latest timestamp `2026-11-10T04:00:00+0100`. That Catalunya feed was delayed and its readings should be marked stale; successful ingestion does not establish freshness. The actual Madrid service returned 21 district polygons. These are dated probe outcomes, not permanently expected counts or bundled measurement files.
+
 - The original CI failure was traced to missing `uv.h` and `curl/curl.h`, cascading into Shiny dependency failures. Ubuntu build prerequisites and package-repository handling were corrected.
 - [Repair run 42996276950](https://github.com/dgalgom/PULSO-Madrid/actions/runs/42996276950) passed dependency installation, all 24 original checks, Shiny application construction and preview generation.
 - Local Windows checks now also pass `tests/test-regions-climate.R`: 17 checks for daily completeness, exact 20-year coverage, anomaly arithmetic, missing history, regional isolation, provider flag/unit handling, UTC and h24 semantics. Total deterministic assertions: 41.

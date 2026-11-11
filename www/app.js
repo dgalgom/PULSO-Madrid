@@ -71,7 +71,7 @@
         marker = L.circleMarker([point.lat, point.lon], {radius: selected ? 10 : 7, stationId: point.station, ...style}).addTo(stationLayer);
         marker.on('click', () => window.Shiny?.setInputValue('map_station', point.station, {priority: 'event'}));
         marker.bindPopup(popup); marker.bindTooltip(safe(point.name)); markers.set(id, marker);
-      } else marker.setLatLng([point.lat, point.lon]).setStyle(style).setRadius(selected ? 10 : 7).setPopupContent(popup);
+      } else marker.setLatLng([point.lat, point.lon]).setStyle(style).setRadius(selected ? 10 : 7).setPopupContent(popup).setTooltipContent(safe(point.name));
     });
     markers.forEach((marker, id) => { if (!keep.has(id)) { stationLayer.removeLayer(marker); markers.delete(id); } });
     target.dataset.stationCount = String(markers.size); target.dataset.metric = data.metric; target.dataset.region = data.region;
