@@ -1,0 +1,14 @@
+.Rhistory
+.RData
+.Rproj.user/
+data/cache/
+*.log
+tests/*-local.R
+.library/
+.Renviron
+.env
+.env.*
+!.env.example
+rsconnect/
+*.zip
+.DS_Store

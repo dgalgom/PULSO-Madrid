@@ -1,0 +1,34 @@
+name: R checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+          use-public-rspm: true
+      - name: Install runtime dependencies
+        shell: Rscript {0}
+        run: source("setup.R")
+      - name: Data and rendering checks
+        run: Rscript tests/test-data.R
+      - name: Construct Shiny application
+        shell: Rscript {0}
+        run: |
+          app <- source("app.R", encoding = "UTF-8")$value
+          stopifnot(inherits(app, "shiny.appobj"))
+      - name: Regenerate offline preview
+        run: Rscript preview.R
