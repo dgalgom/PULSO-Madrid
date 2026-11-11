@@ -12,3 +12,5 @@ tests/*-local.R
 rsconnect/
 *.zip
 .DS_Store
+validation-output/
+node_modules/

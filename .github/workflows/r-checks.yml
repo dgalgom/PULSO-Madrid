@@ -28,11 +28,33 @@ jobs:
         shell: Rscript {0}
         run: source("setup.R")
       - name: Data and rendering checks
-        run: Rscript tests/test-data.R
-      - name: Construct Shiny application
-        shell: Rscript {0}
         run: |
-          app <- source("app.R", encoding = "UTF-8")$value
-          stopifnot(inherits(app, "shiny.appobj"))
+          Rscript tests/test-data.R
+          Rscript tests/test-regions-climate.R
+      - name: Construct Shiny application
+        run: Rscript tests/test-shiny.R
       - name: Regenerate offline preview
         run: Rscript preview.R
+      - name: Install browser validation tools
+        run: |
+          npm install --prefix /tmp/pulso-browser --no-save playwright leaflet@1.9.4
+          node /tmp/pulso-browser/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Browser integration checks
+        env:
+          NODE_PATH: /tmp/pulso-browser/node_modules
+        run: |
+          Rscript run.R > /tmp/pulso-shiny.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:3838/ > /dev/null; then break; fi
+            sleep 1
+          done
+          node tests/browser.cjs
+      - name: Probe official regional providers
+        continue-on-error: true
+        run: Rscript tests/provider-probe.R
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: validation-evidence
+          path: validation-output/
+          if-no-files-found: ignore

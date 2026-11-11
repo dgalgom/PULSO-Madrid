@@ -70,7 +70,7 @@ trend_chart <- function(d,threshold,unit) {
   dots <- paste(vapply(seq_len(nrow(d)),function(i) sprintf('<circle cx="%.1f" cy="%.1f" r="4" fill="#c8f36b"><title>%s · %s %s</title></circle>',
     x(d$time[i]),y(d$value[i]),stamp(d$time[i]),fmt(d$value[i]),esc(unit)),''),collapse='')
   htmltools::HTML(paste0('<svg class="trend-chart" viewBox="0 0 800 285" role="img" aria-label="Serie horaria de la estación seleccionada">',grid,
-    sprintf('<path d="M 58 %.1f H 750" stroke="#ff9d6c" stroke-dasharray="5 5"/><text x="640" y="%.1f" class="threshold-label">Referencia %s</text>',y(threshold),y(threshold)-8,fmt(threshold)),
+    sprintf('<path d="M 58 %.1f H 750" stroke="#ff9d6c" stroke-dasharray="5 5"/><text x="600" y="%.1f" class="threshold-label">Límite horario %s</text>',y(threshold),y(threshold)-8,fmt(threshold)),
     lines,dots,labels,'</svg>'))
 }
 

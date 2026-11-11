@@ -65,13 +65,20 @@ station_id <- function(x) {
   x <- as.character(x)
   # Municipality-prefixed station IDs: 28079004 -> 4.
   x <- sub('^28079','',x)
-  as.character(suppressWarnings(as.integer(x)))
+  # Preserve provider identifiers (including letters); normalize numeric IDs only.
+  numeric <- grepl('^[0-9]+$',x)
+  x[numeric] <- as.character(suppressWarnings(as.integer(x[numeric])))
+  x[is.na(x) | !nzchar(x)] <- NA_character_
+  x
 }
 
 validate_observations <- function(d, now=Sys.time()) {
   required <- c('station','network','metric','time','value')
   if (!all(required %in% names(d))) stop('Esquema de observaciones incompleto.')
   if (!inherits(d$time,'POSIXct')) stop('La fecha debe incluir hora y zona horaria.')
+  attr(d$time,'tzone') <- 'Europe/Madrid'
+  if(!'region' %in% names(d)) d$region <- 'madrid'
+  required <- c(required,'region')
   d$station <- station_id(d$station)
   d <- d[!is.na(d$station) & is.finite(d$value) & !is.na(d$time) & d$time<=now+300 &
            d$metric %in% metrics$key & d$network %in% c('air','weather'),required,drop=FALSE]
@@ -79,7 +86,7 @@ validate_observations <- function(d, now=Sys.time()) {
   d <- d[d$network==metrics$network[match(d$metric,metrics$key)],,drop=FALSE]
   d <- d[d$value>=0 | d$metric=='temperature',,drop=FALSE]
   if (!nrow(d)) stop('No hay observaciones válidas para los indicadores admitidos.')
-  key <- paste(d$station,d$network,d$metric,as.numeric(d$time),sep=':')
+  key <- paste(d$region,d$station,d$network,d$metric,as.numeric(d$time),sep=':')
   d <- d[!duplicated(key,fromLast=TRUE),,drop=FALSE]
   d[order(d$time,d$station),,drop=FALSE]
 }
@@ -125,7 +132,8 @@ parse_stations <- function(d,network) {
 latest_readings <- function(d,metric,now=Sys.time(),max_age_hours=3) {
   d <- d[d$metric==metric & d$time<=now+300,,drop=FALSE]
   d <- d[order(d$time,decreasing=TRUE),,drop=FALSE]
-  d <- d[!duplicated(paste(d$network,d$station)),,drop=FALSE]
+  key <- if('region' %in% names(d)) paste(d$region,d$network,d$station) else paste(d$network,d$station)
+  d <- d[!duplicated(key),,drop=FALSE]
   d$age_hours <- as.numeric(difftime(now,d$time,units='hours'))
   d$fresh <- d$age_hours<=max_age_hours
   d
