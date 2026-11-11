@@ -185,7 +185,7 @@ server <- function(input,output,session) {
       value=d$value[i],fresh=d$fresh[i],network=d$network[i],time=stamp(d$time[i])))
     session$sendCustomMessage('pulso-map',list(region=input$region,lat=r$lat,lon=r$lon,zoom=r$zoom,
       markers=points,selected=if(is.null(input$station)) '' else input$station,
-      threshold=threshold(),unit=current_metric()$unit,mode=bundle()$mode,provider=bundle()$message))
+      threshold=threshold(),metric=current_metric()$key,unit=current_metric()$unit,mode=bundle()$mode,provider=bundle()$message))
   })
   observeEvent(input$history_upload,{
     tryCatch({

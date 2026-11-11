@@ -6,10 +6,12 @@
 |---|---|
 | `app.R` | Shiny layout, reactive state, refresh/import handlers and CSV export |
 | `R/data.R` | Indicator definitions, demo generation, CSV adapters, validation and public source registry |
+| `R/regions.R` | Region registry, Galicia/Catalunya adapters and source-specific validation |
+| `R/climate.R` | Historical import, daily completeness and 20-year daily baseline |
 | `R/views.R` | Shared HTML components and SVG map/trend rendering |
 | `R/content.R` | Dated newspaper summaries and official reference links |
 | `www/style.css` | Responsive visual design and focus/reduced-motion treatment |
-| `www/app.js` | Delegated click/keyboard bridge from SVG points to Shiny |
+| `www/app.js` | Persistent Leaflet map, cached districts, marker updates and Shiny click bridge |
 | `preview.R` | Generates a standalone offline preview without Shiny |
 | `tests/test-data.R` | Deterministic data semantics, rendering and syntax checks |
 
@@ -29,7 +31,7 @@ flowchart TD
   Bundle --> Export[CSV with mode and provenance]
 ```
 
-Each Shiny session starts with a new synthetic bundle. A successful refresh replaces it with observations obtained from the municipal feeds. Failure of every observation source preserves the previous bundle and displays an error. A partially successful refresh accepts the available real network and records source failures. No missing real readings are filled from the demo.
+Each session keeps an in-memory bundle per region. Madrid starts in labelled demo mode; Galicia and Catalunya start unloaded. A selected-region refresh replaces only its bundle. Failure preserves the old bundle and displays an error. Madrid supports partial network availability. No missing real readings are filled from the demo.
 
 Station metadata is keyed by both `network` and `station`. A missing official inventory disables plotting for that network instead of borrowing demo coordinates. Tables and time-series inspection can remain available without a map.
 
@@ -39,7 +41,11 @@ The selected indicator determines the network, station choices, unit and default
 
 Readings age against the current time, reevaluated every minute. Demo mode instead uses the end of its fixed synthetic scenario so the example remains reproducible. The minute timer does not download data. Refresh is manual and synchronous; four requests can temporarily occupy that session while they complete or time out.
 
-The SVG map is a schematic geographical plot with coordinate axes, not a tiled basemap. It avoids map-service credentials and offline tile failures. The trend renderer separates lines at missing hourly intervals. HTML escaping is applied to text inserted into SVG attributes.
+The app map uses Leaflet 1.9.4 from a pinned CDN with SRI, CARTO/OpenStreetMap tiles and Canvas sensor markers. The map and tiles are constructed once, markers update in place, and viewport is retained per region. Official Madrid district polygons are queried once per page, cached and hidden in other regions. Failures leave tables usable and show a map status. This reduces avoidable work but is not a measured latency guarantee.
+
+The offline static preview retains a schematic SVG of the Madrid demo. It is not the new interactive interface. The trend chart remains SVG and preserves gaps. Text inserted into SVG/Leaflet HTML is escaped.
+
+The daily-temperature panel uses imported same-station history and a complete target day. Its 20-year daily baseline is never used as an hourly marker cutoff. The demo-only synthetic history is never used for real observations.
 
 ## Extension points
 

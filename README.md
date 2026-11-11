@@ -1,11 +1,11 @@
-# PULSO / Madrid
+# PULSO / España
 
 [![R checks](https://github.com/dgalgom/PULSO-Madrid/actions/workflows/r-checks.yml/badge.svg)](https://github.com/dgalgom/PULSO-Madrid/actions/workflows/r-checks.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-c8f36b.svg)](LICENSE)
 
-An R Shiny environmental observatory, built from a review of datos.gob.es and Spanish newspaper coverage on 11 November 2026. The interface is in Spanish. Its purpose is to explore local environmental observations during heat, pollution and severe-weather episodes.
+An R Shiny environmental observatory with official-data adapters for Madrid, Galicia and Catalunya, built from datos.gob.es and Spanish newspaper research. The interface is in Spanish. The expanded application is named **PULSO España**; the existing GitHub repository URL remains `dgalgom/PULSO-Madrid` for continuity. It does not claim complete national coverage.
 
-**Status: research prototype.** The bundled preview uses synthetic data. The original development environment passed 24 data/rendering checks but could not run Shiny or verify live ingestion. See [validation](VALIDATION.md) before interpreting the dashboard.
+**Status: research prototype.** The bundled preview uses synthetic data. There are 41 deterministic data/rendering checks plus Shiny and browser integration checks in CI. Official-provider probes run separately and are allowed to fail on external outages; a green workflow alone does not establish feed availability. See [validation](VALIDATION.md) and the latest Actions logs for actual results.
 
 ## Get the project
 
@@ -20,7 +20,7 @@ Use a current R release with UTF-8 support; development checks used R 4.6.1. RSt
 
 Download or clone the repository and open [preview.html](preview.html) in your browser for a self-contained static design preview. GitHub's file viewer displays its source rather than running the page. It uses the same synthetic data, map and trend renderers as the app. It has no external assets or runtime dependencies. The preview is not the interactive Shiny application.
 
-Open **pulso-madrid.Rproj** in RStudio, then run:
+Open **pulso-espana.Rproj** in RStudio, then run:
 
 ```r
 source("setup.R")
@@ -34,28 +34,54 @@ Rscript setup.R
 Rscript run.R
 ```
 
-The terminal launch binds only to http://127.0.0.1:3838. Required packages: `shiny`, `htmltools`, `curl`. No API key, JavaScript package manager or mapping service is required. `setup.R` needs internet access to CRAN for missing packages and installs them in the project-local `.library` directory. Open a new R session from this project or run `run.R` so that directory is available on the library path.
+The terminal launch binds only to http://127.0.0.1:3838. Required R packages: `shiny`, `htmltools`, `curl`, `jsonlite`. Leaflet 1.9.4 is loaded from a CDN with integrity hashes; map tiles use CARTO/OpenStreetMap. No API key is required. Runtime does not need npm; CI uses npm for browser validation. `setup.R` installs missing R packages into `.library/`, preserving a configured package repository. On Ubuntu, install `libuv1-dev`, `libcurl4-openssl-dev`, `libssl-dev` and `pkg-config` first. Open a new R session from this project or run `run.R` so that directory is available.
 
 ## What it does
 
 - Six selectable indicators: temperature, hourly precipitation, wind, NO2, PM2.5 and ozone.
-- An interactive geographical station plot, with mouse and keyboard selection, plus a station selector.
+- A persistent Leaflet map with zoom/pan, Canvas station markers, popups and 21 official Madrid district polygons. The station selector provides keyboard access.
 - Hourly trends, selectable 12/24/48-hour windows and an editable exploratory reference.
 - Latest readings and explicit stale-data status. KPI cards show network maxima of recent station readings, not city averages.
-- Manual refresh from four official public distributions; separate failures for each network and its metadata.
+- Regional refresh: Madrid weather/air, Galicia weather, Catalunya air. Each region keeps its own session cache. Missing indicators and coordinates remain missing.
+- A daily-temperature comparison with an explicit same-calendar-day baseline over the prior 20 years, distinct from the hourly exploratory limit.
 - CSV import for offline work and export with mode, units, time-zone offsets and source information.
 - News-to-dataset explanation and links to every catalogue record, distribution and newspaper article.
-- Responsive dark navy interface, lime highlights, warm signal accents, custom SVG graphics and no dependency on web fonts or online map tiles.
+- Responsive dark navy interface, lime highlights, warm signal accents, Leaflet geography and SVG time-series charts. Map tiles and CDN assets require network access; the standalone static preview remains offline.
+
+## Coverage and sources
+
+| Territory | Indicators | Official source |
+|---|---|---|
+| Madrid municipality | Weather and air | Ayuntamiento de Madrid hourly CSVs and station inventories |
+| Galicia | Temperature, precipitation, wind | MeteoGalicia hourly observations and station inventory |
+| Catalunya | NO2, PM2.5, ozone | Generalitat XVPCA / Socrata dataset `tasf-thgu` |
+
+See the catalogue links and exact request URLs in [regional research](RESEARCH.md) and `R/regions.R`. Galicia accepts only validation code 1 (original valid data); Catalunya's published hourly columns do not supply the Madrid `V` flag and remain explicitly provisional. It is not valid to infer identical data quality across providers.
+
+## What is the temperature reference?
+
+The old **35 °C** reference was only an editable exploratory threshold. It is now labelled **Límite exploratorio horario**. It is not a historical average or a health warning threshold.
+
+The separate **20-year daily baseline** for date D in year Y is:
+
+```text
+baseline = mean(daily_mean(same station, same month/day, years Y-20 through Y-1))
+daily_anomaly = complete daily mean on D - baseline
+```
+
+For 20 July 2026, use the twenty daily means for 20 July in 2006–2025. All 20 distinct years are required, with equal weight; missing years and February 29 are not interpolated. The selected day's hourly observations must cover every hourly interval before its mean is compared. An incomplete day is not compared with complete historical days. The hourly chart never uses a daily baseline as a threshold.
+
+Import UTF-8 history with `region,station,date,tmean,source` under **Fuentes y método**. History must use the same station and consistent daily-mean definition; it cannot mix a nearby AEMET station with a municipal sensor. No real 20-year history is bundled or automatically inferred from the short live feeds. Madrid's municipal weather archive starts in 2019 and cannot itself support a 20-year baseline. Demo mode includes an explicitly synthetic 20-year example. This custom rolling baseline is distinct from AEMET's standard 1991–2020 climate normals. See [CLIMATOLOGY.md](docs/CLIMATOLOGY.md).
 
 ## Data modes and limitations
 
 The app **starts in DEMONSTRATION mode**. All sensor values in that mode are generated, and station coordinates are approximate demo positions. The fixed 48-hour scenario ends on 21 July 2026 at 16:00 Madrid time; it does not describe actual conditions on that date or today. Both the app and its exports identify synthetic data.
 
-Use **Conectar datos públicos** to attempt official downloads. Municipal readings are provisional. If a network fails, another network can still load; missing station coordinates remain missing. If every observation download fails, the previous bundle remains and an error is shown. The app never substitutes synthetic observations or demo coordinates for missing official data. Downloads are manual; the age of readings is reevaluated every minute. Nothing is silently described as live just because it was recently downloaded.
+Select a region and use **Conectar datos públicos** to attempt official downloads. Regions outside Madrid start unloaded, with no fabricated observations. If a request fails, its previous bundle remains and an error is shown. Madrid's weather/air networks can load independently. Downloads are manual; changing filters does not redownload data. The age of readings is reevaluated every minute. Nothing is silently described as fresh merely because it was recently downloaded.
 
-The sources were verified at the **catalogue and distribution-link level**. This environment blocked external shell downloads, so the current CSV payloads and live adapters could not be tested against the live providers. The parser supports the municipal wide hourly schema; incompatible migrated schemas are explicitly rejected. The app's supported local import is the same format. Adapt `parse_observations()` if the provider changes column structure. API pagination is requested at 5,000 rows; the selected wide hourly feed should be well below that, but this was not verified against a live response.
+Provider availability and schema compatibility are checked by `tests/provider-probe.R` on GitHub, separately from deterministic CI. Its logs record real observation counts and timestamps or source-specific failures. The original local sandbox cannot download these feeds. The Madrid adapter still requires compatible municipal wide-hourly CSVs. Catalunya's adapter paginates recent records and rejects a truncated result. Source changes produce visible errors rather than a synthetic fallback.
 
-Shiny was absent from the installed R library and could not be downloaded in this environment. **The Shiny session and browser interactions have not been run here.** The data transformations, SVG renderers and R syntax were checked with the installed R runtime; see `VALIDATION.md`.
+The original CI installation failure was traced to missing native `libuv` and `libcurl` headers; the corrected job passed installation, data checks and Shiny construction. Expanded CI also exercises Shiny reactivity and a Chromium session. Browser tests use real Leaflet code with synthetic district fixtures; the independent provider probe checks the actual official district response. No performance guarantee is claimed without measurement.
 
 This is a municipal exploration prototype, not an emergency service. Its references are editable analytical values, not official warning thresholds, an air-quality index or medical recommendations. It does not forecast floods, estimate deaths, identify pollution causes or find safe routes/refuges. The map shows sensor points, not continuous exposure. News from elsewhere in Spain is context, not evidence that Madrid has the same conditions.
 
@@ -76,10 +102,12 @@ Importing observations starts a separate local bundle without official coordinat
 
 ```text
 Rscript tests/test-data.R
+Rscript tests/test-regions-climate.R
+Rscript tests/test-shiny.R
 Rscript preview.R
 ```
 
-The project-local `.Rprofile` enables UTF-8 character handling on Windows when necessary. No user-global R settings are changed. See [RESEARCH.md](RESEARCH.md) for selection rationale and [VALIDATION.md](VALIDATION.md) for the actual validation limits. GitHub Actions is configured to install dependencies, run the data checks, construct the Shiny app object and regenerate the preview. A workflow configuration is not evidence of a passing remote run; check the Actions tab for its actual result.
+The project-local `.Rprofile` enables UTF-8 character handling on Windows when necessary. No user-global R settings are changed. See [RESEARCH.md](RESEARCH.md) for selection rationale and [VALIDATION.md](VALIDATION.md) for actual validation results. Browser screenshots and provider outcomes are attached to workflow runs as `validation-evidence` when produced; fixture screenshots are named as such.
 
 ## Documentation
 

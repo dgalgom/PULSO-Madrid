@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Regional map and comparison update
+
+- Renamed the application and RStudio project to PULSO España; existing repository URL retained.
+- Fixed CI's missing native libuv/libcurl headers and preserved the runner's configured package repository; the repair run passed.
+- Replaced the app's schematic map with persistent Leaflet, Canvas station updates and official Madrid district polygons.
+- Distinguished the editable hourly limit from a complete-day anomaly against the same station/calendar day in the previous 20 years.
+- Added official-data adapters and regional state for Galicia weather and Catalunya air quality.
+- Added 17 regional/climate checks, Shiny reactive smoke checks, Chromium integration checks and separately reported provider probes.
+
 ### Initial research prototype
 
 - Spanish-language Shiny environmental dashboard for Madrid.

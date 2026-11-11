@@ -5,10 +5,10 @@ Start with the [README](README.md), [architecture](docs/ARCHITECTURE.md) and [va
 ## Development
 
 1. Clone the repository and create a branch for your change.
-2. Open `pulso-madrid.Rproj` or start R from the repository root.
+2. Open `pulso-espana.Rproj` or start R from the repository root.
 3. Run `source("setup.R")` to install missing packages into `.library/`.
 4. Run `shiny::runApp(".", launch.browser = TRUE)` to inspect the app.
-5. Run `Rscript tests/test-data.R` and `Rscript preview.R` before opening a pull request.
+5. Run `Rscript tests/test-data.R`, `Rscript tests/test-regions-climate.R`, `Rscript tests/test-shiny.R` and `Rscript preview.R` before opening a pull request.
 
 Keep source files in UTF-8 with LF line endings. Update the README or relevant guide when changing behavior. Regenerate `preview.html` when changing shared data, view rendering or CSS. Keep the visible UI in Spanish; code comments and project documentation currently use English.
 
@@ -18,7 +18,7 @@ Data-adapter changes should include a small synthetic fixture covering the actua
 
 For UI changes, inspect desktop and mobile layouts, keyboard station selection, long station names, an empty network and missing coordinates. Record what you actually ran; do not describe a generated preview as a successful Shiny browser test.
 
-The GitHub workflow installs dependencies, runs the deterministic checks, constructs the Shiny app object and regenerates the static preview. It does not perform browser interaction tests or verify municipal feed availability.
+The workflow installs native prerequisites and R packages, runs deterministic checks and Shiny smoke tests, regenerates the preview, and exercises Chromium with real Leaflet and synthetic district fixtures. An independent nonblocking probe reports official regional-feed and district availability. Green CI does not imply all external providers succeeded; inspect the probe step and artifacts.
 
 ## Report a problem
 

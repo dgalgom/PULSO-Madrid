@@ -1,5 +1,26 @@
 # Research and selection — 11 November 2026
 
+## Regional expansion — PULSO España
+
+| Territory | Official source | Implemented scope |
+|---|---|---|
+| Madrid municipality | Existing municipal weather/air distributions | Original weather and pollution networks |
+| Galicia | [MeteoGalicia catalogue](https://datos.gob.es/es/catalogo/a12002994-estaciones-meteorologicas1) | Hourly temperature, rainfall and wind, with official station coordinates |
+| Catalunya | [XVPCA catalogue](https://datos.gob.es/es/catalogo/a09002970-calidad-del-aire-en-los-puntos-de-medida-automaticos-de-la-red-de-vigilancia-y-prevision-de-la-contaminacio-atmosferica) | NO2, PM2.5 and ozone in dataset `tasf-thgu` |
+| Madrid zones | [District catalogue](https://datos.gob.es/es/catalogo/l01280796-distritos-municipales-de-madrid1) | 21 administrative polygons, no invented zone-level exposure |
+
+The [official MeteoGalicia hourly specification](https://www.meteogalicia.gal/datosred/infoweb/meteo/docs/rss/JSON_EstacionHorarios_gl.pdf) defines UTC timestamps, validation codes and a recent window up to 72 hours. The adapter requests 48 hours and only retains original valid code 1, discarding unreviewed, suspect and interpolated readings. Coordinates come from the inventory's decimal lat/lon. The [Xunta catalogue](https://abertos.xunta.gal/catalogo/medio-abiente/-/dataset/0114/estaciones-meteorologicas) specifies CC BY-SA 4.0; those data are not relicensed under MIT.
+
+Catalunya's adapter paginates recent XVPCA records and rejects truncation. Its published hourly concentrations do not include Madrid-style validity flags, so the source remains explicitly provisional. Live provider probes are separate from deterministic tests; consult workflow logs and `validation-evidence` for actual counts, timestamps or failures.
+
+The [Madrid administrative service](https://sigma.madrid.es/hosted/rest/services/CARTOGRAFIA/LIMITES_ADMINISTRATIVOS/MapServer/3?f=pjson) identifies layer 3 as district polygons and supports GeoJSON. The client requests WGS84, simplified geometry and district name/code; it verifies 21 features and caches the result. Leaflet 1.9.4 uses Canvas markers and retains its map across filters. Districts are neutral outlines because point observations do not justify district-wide temperature estimates.
+
+Euskadi's [station inventory](https://datos.gob.es/es/catalogo/a16003011-red-de-estaciones-meteorologicas-de-euskadi1) was reviewed too. Its [API information](https://www.euskalmet.euskadi.eus/servicios/open-data/) requires registration; it remains a candidate, not a working adapter without credentials.
+
+See [CLIMATOLOGY.md](docs/CLIMATOLOGY.md) for the explicit custom 20-year daily comparison. [AEMET's 1991–2020 normal period](https://www.aemet.es/es/datos_abiertos/estadisticas/vigilancia_clima) is a different standard. No real twenty-year municipal station history is fabricated.
+
+The application and RStudio project are now named PULSO España. The existing repository slug `PULSO-Madrid` preserves its URL; the publishing connector does not expose repository renaming. The sections below record the original Madrid-focused review and its original access limitations.
+
 ## Catalogue review
 
 The requested [datasets landing page](https://datos.gob.es/es/catalogo/conjuntos-datos) was fetched, but exposed no readable catalogue content to the web tool. Individual catalogue records were accessible, so the review continued through those records and their distribution links. This is a targeted review of relevant datasets, not an exhaustive audit of the national catalogue.

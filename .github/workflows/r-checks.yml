@@ -50,6 +50,7 @@ jobs:
           done
           node tests/browser.cjs
       - name: Probe official regional providers
+        if: always()
         continue-on-error: true
         run: Rscript tests/provider-probe.R
       - uses: actions/upload-artifact@v4

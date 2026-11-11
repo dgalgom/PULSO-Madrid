@@ -68,13 +68,14 @@
         '<br>' + safe(point.time) + ' · ' + (point.fresh ? 'reciente' : 'antigua') +
         '<br>' + (data.mode === 'demo' ? 'Escenario sintético' : safe(data.provider));
       if (!marker) {
-        marker = L.circleMarker([point.lat, point.lon], {radius: selected ? 10 : 7, ...style}).addTo(stationLayer);
+        marker = L.circleMarker([point.lat, point.lon], {radius: selected ? 10 : 7, stationId: point.station, ...style}).addTo(stationLayer);
         marker.on('click', () => window.Shiny?.setInputValue('map_station', point.station, {priority: 'event'}));
         marker.bindPopup(popup); marker.bindTooltip(safe(point.name)); markers.set(id, marker);
       } else marker.setLatLng([point.lat, point.lon]).setStyle(style).setRadius(selected ? 10 : 7).setPopupContent(popup);
     });
     markers.forEach((marker, id) => { if (!keep.has(id)) { stationLayer.removeLayer(marker); markers.delete(id); } });
-    target.dataset.stationCount = String(markers.size); map.invalidateSize({pan: false});
+    target.dataset.stationCount = String(markers.size); target.dataset.metric = data.metric; target.dataset.region = data.region;
+    map.invalidateSize({pan: false});
   }
   function register() { if (window.Shiny) Shiny.addCustomMessageHandler('pulso-map', update); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', register); else register();

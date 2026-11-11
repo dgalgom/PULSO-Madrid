@@ -4,7 +4,13 @@
 
 Clone the project, open its RStudio project and run `source("setup.R")`. This installs missing runtime packages into `.library/`. Start with `source("run.R")`, or `shiny::runApp(".", launch.browser = TRUE)` from the same session. Terminal users can run `Rscript setup.R` followed by `Rscript run.R` and open `http://127.0.0.1:3838`.
 
+The renamed RStudio project is `pulso-espana.Rproj`. On Ubuntu, install `libuv1-dev`, `libcurl4-openssl-dev`, `libssl-dev` and `pkg-config` before compiling R dependencies. CI pins Ubuntu 24.04 and installs these explicitly. The earlier missing-header failures cascaded from `fs`/`curl` into `sass`, `bslib` and Shiny; they were not an application syntax error.
+
 The app starts in a labelled synthetic scenario. **Conectar datos públicos** attempts four public downloads. The data status panel identifies the mode and observation timestamps. **Fuentes y método** exposes source links and local CSV imports.
+
+Select the territory first. The four-download description above applies to Madrid; Galicia requests hourly weather plus its inventory, and Catalunya queries recent air records with pagination. Each region retains its own session bundle and viewport. Regions without loaded data show an explicit empty state. Local municipal wide-CSV import is currently Madrid-only; the normalized history importer is region-aware.
+
+The interactive map needs network access to the Leaflet CDN, tile provider and official Madrid zone endpoint. The Leaflet loader is pinned with integrity hashes. Map failures leave the data table usable. Polygons are administrative context, not a temperature interpolation. Read [CLIMATOLOGY.md](CLIMATOLOGY.md) before importing daily history; the live feeds alone do not contain twenty historical years.
 
 ## Troubleshooting
 

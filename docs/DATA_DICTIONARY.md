@@ -6,6 +6,7 @@
 |---|---|---|
 | `station` | character | Normalized station code; `28079004` becomes `4` |
 | `network` | character | `weather` or `air`; part of station identity |
+| `region` | character | `madrid`, `galicia` or `catalunya`; part of station identity |
 | `metric` | character | One of the six indicator keys below |
 | `time` | POSIXct | Hour-end timestamp in `Europe/Madrid` |
 | `value` | numeric | Finite reading in the indicator's native unit |
@@ -21,7 +22,11 @@ Station metadata uses `station`, `network`, `name`, `lat` and `lon`. Coordinates
 | `pm25` | 9 | air | µg/m³ | 30 |
 | `ozone` | 14 | air | µg/m³ | 120 |
 
-These references are editable exploration aids. They are not official warning thresholds or an air-quality index. No daily/annual legal limit is compared with an hourly reading.
+These hourly limits are editable exploration aids, not climate normals, official warning thresholds or an air-quality index. The separate [20-year daily baseline](CLIMATOLOGY.md) requires same-station historical daily means and a complete target day. No daily/annual legal limit is compared with an hourly reading.
+
+## Regional adapters
+
+Galicia uses MeteoGalicia `listHorarios`, `listaInstantes`, `listaMedidas`, explicit UTC timestamps, codes `TA_AVG_1.5m`, `PP_SUM_1.5m`, `VV_AVG_10m` and only original-valid flag 1. Units must match; official coordinates come from its separate inventory. Catalunya uses XVPCA `codi_eoi`, `data`, `contaminant`, `unitats`, `h01`–`h24`, station names and decimal coordinates. Its published measurements have no per-hour Madrid-style `V` flag and remain provisional. Unknown schemas are rejected.
 
 ## Supported municipal CSV
 
